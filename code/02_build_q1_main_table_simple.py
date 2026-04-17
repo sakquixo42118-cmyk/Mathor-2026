@@ -1,23 +1,10 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Dict, List
 
 import pandas as pd
 
-
-# =========================
-# 0. 路径配置
-# =========================
-SCRIPT_PATH = Path(__file__).resolve()
-PROJECT_ROOT = SCRIPT_PATH.parents[1]
-RAW_DIR = PROJECT_ROOT / "raw"
-OUT_DIR = PROJECT_ROOT / "out"
-OUT_DIR.mkdir(parents=True, exist_ok=True)
-
-RAW_CSV = RAW_DIR / "C题：附件1：样例数据.csv"
-RAW_XLSX = RAW_DIR / "C题：附件1：样例数据.xlsx"
-
+from config import C_Q1_CANDIDATES, OUT_DIR, find_existing_file, ensure_project_dirs
 
 # =========================
 # 1. 常量配置
@@ -97,26 +84,21 @@ NUMERIC_COLUMNS: List[str] = CORE_COLUMNS.copy()
 # =========================
 # 2. 读取数据
 # =========================
-def find_input_file() -> Path:
-    if RAW_CSV.exists():
-        return RAW_CSV
-    if RAW_XLSX.exists():
-        return RAW_XLSX
-    raise FileNotFoundError(
-        "未在 raw 文件夹中找到 C题附件1 数据文件。
-"
-        f"已检查：
-- {RAW_CSV}
-- {RAW_XLSX}"
-    )
+def read_input_data(file_path) -> pd.DataFrame:
+    if str(file_path).lower().endswith(".csv"):
+        encodings = ["utf-8-sig", "utf-8", "gbk"]
+        last_error = None
+        for enc in encodings:
+            try:
+                return pd.read_csv(file_path, encoding=enc)
+            except Exception as exc:
+                last_error = exc
+        raise RuntimeError(f"无法读取文件: {file_path}\n最后一次报错: {last_error}")
 
-
-def read_input_data(file_path: Path) -> pd.DataFrame:
-    if file_path.suffix.lower() == ".csv":
-        return pd.read_csv(file_path)
-    if file_path.suffix.lower() in {".xlsx", ".xls"}:
+    if str(file_path).lower().endswith((".xlsx", ".xls")):
         return pd.read_excel(file_path)
-    raise ValueError(f"不支持的文件类型：{file_path.suffix}")
+
+    raise ValueError(f"不支持的文件类型：{file_path}")
 
 
 # =========================
@@ -136,7 +118,6 @@ def add_label_columns(df: pd.DataFrame) -> pd.DataFrame:
 def add_clinical_flags(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
-    # 题面给定的正常范围异常标记
     df["TC异常"] = (df["TC（总胆固醇）"] < 3.1) | (df["TC（总胆固醇）"] > 6.2)
     df["TG异常"] = (df["TG（甘油三酯）"] < 0.56) | (df["TG（甘油三酯）"] > 1.7)
     df["LDL异常"] = (df["LDL-C（低密度脂蛋白）"] < 2.07) | (df["LDL-C（低密度脂蛋白）"] > 3.1)
@@ -150,16 +131,8 @@ def add_clinical_flags(df: pd.DataFrame) -> pd.DataFrame:
     df.loc[male_mask, "尿酸异常"] = (df.loc[male_mask, "血尿酸"] < 208) | (df.loc[male_mask, "血尿酸"] > 428)
     df.loc[female_mask, "尿酸异常"] = (df.loc[female_mask, "血尿酸"] < 155) | (df.loc[female_mask, "血尿酸"] > 357)
 
-    df["血脂异常项数"] = (
-        df[["TC异常", "TG异常", "LDL异常", "HDL异常"]]
-        .astype(int)
-        .sum(axis=1)
-    )
-    df["代谢异常项数"] = (
-        df[["血糖异常", "尿酸异常", "BMI异常"]]
-        .astype(int)
-        .sum(axis=1)
-    )
+    df["血脂异常项数"] = df[["TC异常", "TG异常", "LDL异常", "HDL异常"]].astype(int).sum(axis=1)
+    df["代谢异常项数"] = df[["血糖异常", "尿酸异常", "BMI异常"]].astype(int).sum(axis=1)
     df["是否存在任一血脂异常"] = (df["血脂异常项数"] >= 1).astype(int)
 
     return df
@@ -206,7 +179,7 @@ def build_variable_dictionary() -> pd.DataFrame:
     return pd.DataFrame(rows, columns=["变量名", "含义", "类型"])
 
 
-def build_summary_text(df: pd.DataFrame, input_file: Path) -> str:
+def build_summary_text(df: pd.DataFrame, input_file) -> str:
     lines: List[str] = []
     lines.append("问题一主分析表构建摘要（简化版）")
     lines.append("=" * 36)
@@ -255,15 +228,15 @@ def build_summary_text(df: pd.DataFrame, input_file: Path) -> str:
     lines.append(df[desc_cols].describe().round(4).to_string())
     lines.append("")
     lines.append("说明：本简化版主分析表不单独构造极端值标记，仅保留题面正常范围下的异常标记与计数变量，适合先行建模与描述统计。")
-    return "
-".join(lines)
+    return "\n".join(lines)
 
 
 # =========================
 # 5. 主流程
 # =========================
 def main() -> None:
-    input_file = find_input_file()
+    ensure_project_dirs()
+    input_file = find_existing_file(C_Q1_CANDIDATES)
     print(f"[INFO] 读取文件：{input_file}")
     df = read_input_data(input_file)
 
@@ -280,8 +253,7 @@ def main() -> None:
         na_summary = df[NUMERIC_COLUMNS].isna().sum()
         na_summary = na_summary[na_summary > 0]
         raise ValueError(
-            "关键数值列在转数值后出现缺失，请先检查原始数据。
-"
+            "关键数值列在转数值后出现缺失，请先检查原始数据。\n"
             + na_summary.to_string()
         )
 

@@ -1,20 +1,16 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Iterable, List, Dict, Any
+
 import pandas as pd
+
+from config import C_Q1_CSV, OUT_DIR, FIGURE_DIR, REFERENCE_DIR, ensure_project_dirs
 
 # =========================
 # 路径设置
 # =========================
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-RAW_DIR = PROJECT_ROOT / "raw"
-OUT_DIR = PROJECT_ROOT / "out"
-FIGURE_DIR = PROJECT_ROOT / "figure"
-REFERENCE_DIR = PROJECT_ROOT / "reference"
-
-FILE_NAME = "C题：附件1：样例数据.csv"
-INPUT_PATH = RAW_DIR / FILE_NAME
+FILE_NAME = C_Q1_CSV.name
+INPUT_PATH = C_Q1_CSV
 REPORT_PATH = OUT_DIR / "c_q1_data_audit_report.txt"
 ISSUES_PATH = OUT_DIR / "c_q1_data_audit_issues.csv"
 
@@ -68,7 +64,7 @@ REQUIRED_COLUMNS = (
 # =========================
 # 工具函数
 # =========================
-def load_csv_with_fallback(path: Path) -> pd.DataFrame:
+def load_csv_with_fallback(path) -> pd.DataFrame:
     encodings = ["utf-8-sig", "utf-8", "gbk"]
     last_error = None
     for enc in encodings:
@@ -109,14 +105,12 @@ def check_missing_and_duplicates(df: pd.DataFrame, issues: List[Dict[str, Any]])
     missing_summary = df.isna().sum()
     duplicate_count = int(df.duplicated().sum())
 
-    # 记录缺失值位置
     na_locs = df[df.isna().any(axis=1)]
     for idx, row in na_locs.iterrows():
         sample_id = row.get("样本ID", None)
         for col in df.columns[df.loc[idx].isna()]:
             add_issue(issues, "missing_value", sample_id, idx, col, None, "该字段存在缺失值")
 
-    # 记录重复行
     dup_rows = df[df.duplicated(keep=False)]
     for idx, row in dup_rows.iterrows():
         add_issue(issues, "duplicate_row", row.get("样本ID", None), idx, "<row>", None, "该行与其他行完全重复")
@@ -128,19 +122,16 @@ def check_missing_and_duplicates(df: pd.DataFrame, issues: List[Dict[str, Any]])
 
 
 def check_numeric_ranges(df: pd.DataFrame, issues: List[Dict[str, Any]]) -> None:
-    # 体质积分 0-100
     for col in CONSTITUTION_SCORE_COLS:
         bad = df[(df[col] < 0) | (df[col] > 100)]
         for idx, row in bad.iterrows():
             add_issue(issues, "invalid_range", row["样本ID"], idx, col, row[col], "体质积分应在 0-100 之间")
 
-    # ADL/IADL 单项 0-10
     for col in ADL_ITEM_COLS + IADL_ITEM_COLS:
         bad = df[(df[col] < 0) | (df[col] > 10)]
         for idx, row in bad.iterrows():
             add_issue(issues, "invalid_range", row["样本ID"], idx, col, row[col], "ADL/IADL 单项应在 0-10 之间")
 
-    # 总分范围
     total_rules = {
         ADL_TOTAL_COL: (0, 50, "ADL总分应在 0-50 之间"),
         IADL_TOTAL_COL: (0, 50, "IADL总分应在 0-50 之间"),
@@ -151,7 +142,6 @@ def check_numeric_ranges(df: pd.DataFrame, issues: List[Dict[str, Any]]) -> None
         for idx, row in bad.iterrows():
             add_issue(issues, "invalid_range", row["样本ID"], idx, col, row[col], msg)
 
-    # 实验指标只检查是否 <= 0（这里只做硬错误检查，不把临床异常当作错误）
     positive_cols = [
         "HDL-C（高密度脂蛋白）",
         "LDL-C（低密度脂蛋白）",
@@ -175,7 +165,6 @@ def check_code_columns(df: pd.DataFrame, issues: List[Dict[str, Any]]) -> None:
 
 
 def check_logic_consistency(df: pd.DataFrame, issues: List[Dict[str, Any]]) -> Dict[str, int]:
-    # ADL 子项求和
     adl_sum = df[ADL_ITEM_COLS].sum(axis=1)
     bad_adl = df[adl_sum != df[ADL_TOTAL_COL]]
     for idx, row in bad_adl.iterrows():
@@ -189,7 +178,6 @@ def check_logic_consistency(df: pd.DataFrame, issues: List[Dict[str, Any]]) -> D
             f"ADL五项之和={adl_sum.loc[idx]}，但记录总分={row[ADL_TOTAL_COL]}",
         )
 
-    # IADL 子项求和
     iadl_sum = df[IADL_ITEM_COLS].sum(axis=1)
     bad_iadl = df[iadl_sum != df[IADL_TOTAL_COL]]
     for idx, row in bad_iadl.iterrows():
@@ -203,7 +191,6 @@ def check_logic_consistency(df: pd.DataFrame, issues: List[Dict[str, Any]]) -> D
             f"IADL五项之和={iadl_sum.loc[idx]}，但记录总分={row[IADL_TOTAL_COL]}",
         )
 
-    # 活动总分 = ADL + IADL
     activity_sum = df[ADL_TOTAL_COL] + df[IADL_TOTAL_COL]
     bad_activity = df[activity_sum != df[ACTIVITY_TOTAL_COL]]
     for idx, row in bad_activity.iterrows():
@@ -217,7 +204,6 @@ def check_logic_consistency(df: pd.DataFrame, issues: List[Dict[str, Any]]) -> D
             f"ADL总分+IADL总分={activity_sum.loc[idx]}，但记录活动总分={row[ACTIVITY_TOTAL_COL]}",
         )
 
-    # 高血脂标签与分型标签的逻辑关系
     bad_subtype_0 = df[(df["高血脂症二分类标签"] == 0) & (df["血脂异常分型标签（确诊病例）"] != 0)]
     for idx, row in bad_subtype_0.iterrows():
         add_issue(
@@ -307,9 +293,9 @@ def build_report(df: pd.DataFrame, base_result: Dict[str, Any], logic_result: Di
 # 主程序
 # =========================
 def main() -> None:
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    FIGURE_DIR.mkdir(parents=True, exist_ok=True)
+    ensure_project_dirs()
     REFERENCE_DIR.mkdir(parents=True, exist_ok=True)
+    FIGURE_DIR.mkdir(parents=True, exist_ok=True)
 
     if not INPUT_PATH.exists():
         raise FileNotFoundError(
