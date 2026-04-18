@@ -1,0 +1,20 @@
+{
+  "input_csv": "G:\\university\\MATHOR REAL\\Mathor-2026\\out\\c_q1_main_simple.csv",
+  "features": [
+    "TG（甘油三酯）",
+    "TC（总胆固醇）",
+    "LDL-C（低密度脂蛋白）",
+    "HDL-C（高密度脂蛋白）",
+    "空腹血糖",
+    "血尿酸",
+    "BMI",
+    "活动量表总分（ADL总分+IADL总分）"
+  ],
+  "n_boot": 200,
+  "selection_eps": 1e-08,
+  "random_state": 42,
+  "phlegm_cv_alpha": 3.5204179632463597,
+  "phlegm_cv_l1_ratio": 0.1,
+  "risk_cv_C": 0.21544346900318834,
+  "risk_cv_l1_ratio": 0.9
+}
