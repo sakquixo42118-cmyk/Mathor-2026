@@ -1,0 +1,14 @@
+{
+  "phlegm_branch_weight": 0.35,
+  "risk_branch_weight": 0.65,
+  "phlegm_r2_mean": -0.0372,
+  "risk_auc_mean": 0.976,
+  "n_indicators": 8,
+  "joint_score_formula": "0.35 * phlegm_branch_score + 0.65 * risk_branch_score",
+  "layer_rules": {
+    "高血脂风险核心指标": "高血脂平均排名 <= 2",
+    "双分支交叉候选指标": "高血脂平均排名 <= 5 且 痰湿平均排名 <= 4",
+    "痰湿辅助表征指标": "痰湿平均排名 <= 3 且未进入前两类",
+    "高血脂辅助指标": "高血脂平均排名 <= 5 且未进入前几类"
+  }
+}
