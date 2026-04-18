@@ -1,0 +1,26 @@
+{
+  "input_csv": "D:\\garage\\mathor real\\out\\c_q1_main_simple.csv",
+  "features": [
+    "TG（甘油三酯）",
+    "TC（总胆固醇）",
+    "LDL-C（低密度脂蛋白）",
+    "HDL-C（高密度脂蛋白）",
+    "空腹血糖",
+    "血尿酸",
+    "BMI",
+    "活动量表总分（ADL总分+IADL总分）"
+  ],
+  "phlegm_branch": {
+    "subset_rule": "体质标签 == 5",
+    "target": "痰湿质",
+    "model_1": "ElasticNetCV",
+    "model_2": "RandomForestRegressor + permutation importance",
+    "cv": "RepeatedKFold(5x5)"
+  },
+  "risk_branch": {
+    "target": "高血脂症二分类标签",
+    "model_1": "LogisticRegressionCV(elasticnet)",
+    "model_2": "RandomForestClassifier + permutation importance",
+    "cv": "RepeatedStratifiedKFold(5x5)"
+  }
+}
