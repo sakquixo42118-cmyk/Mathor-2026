@@ -1,0 +1,9 @@
+{
+  "rate_mode": "main_consistent",
+  "budget_cap": 2000.0,
+  "months": 6,
+  "round_score_digits": 1,
+  "weeks_per_month": 4,
+  "source_file": "D:\\garage\\mathor real\\out\\c_q1_main_simple.csv",
+  "patient_count": 278
+}

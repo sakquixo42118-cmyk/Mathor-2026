@@ -1,0 +1,12 @@
+{
+  "project_root": "D:\\garage\\mathor real",
+  "output_dir": "D:\\garage\\mathor real\\out\\q3_model_comparison",
+  "figure_dir": "D:\\garage\\mathor real\\figure\\q3_model_comparison",
+  "available_models": [
+    "严格主模型",
+    "帕累托辅助验证",
+    "现实优化版"
+  ],
+  "row_count_summary": 1390,
+  "missing_files": []
+}

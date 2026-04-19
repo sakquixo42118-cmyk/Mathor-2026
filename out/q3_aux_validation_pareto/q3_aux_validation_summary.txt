@@ -1,0 +1,25 @@
+﻿问题三辅助验证：完整帕累托前沿 + 三类代表方案
+============================================
+输入数据文件：D:\garage\mathor real\out\c_q1_main_simple.csv
+痰湿体质患者数量（体质标签=5）：278
+
+一、辅助验证口径
+1. 仅针对体质标签=5的患者求解。
+2. 采用 6 阶段前向动态规划，但不做字典序塌缩，保留全部终点帕累托前沿。
+3. 双目标定义：最小化6个月末痰湿积分、最小化6个月总成本。
+4. 每月状态相同则仅保留最小成本路径，因此该实现是精确帕累托辅助验证，不是启发式近似。
+5. 下降率口径：RATE_MODE = main_consistent。
+
+二、总体结果
+平均帕累托点数量：52.19
+平均疗效最优期末积分：38.57，平均疗效最优总成本：1309.47 元
+平均最低成本期末积分：57.42，平均最低成本总成本：404.45 元
+平均均衡方案期末积分：47.91，平均均衡方案总成本：780.58 元
+
+三、文件说明
+- q3_patient_pareto_summary_validation.csv：每位患者的帕累托代表性方案汇总
+- q3_patient_pareto_representative_plans_validation.csv：每位患者三类代表方案的逐月明细
+- q3_patient_pareto_points_validation.csv：每位患者完整帕累托点集
+- q3_feature_rule_summary_validation.csv：分组后的匹配规律汇总（基于均衡方案）
+- q3_sample_1/2/3_pareto_validation.png：样本1/2/3帕累托辅助验证图
+- q3_validation_group_avg_cost_heatmap.png / q3_validation_group_avg_final_score_heatmap.png：均衡方案分组热力图
