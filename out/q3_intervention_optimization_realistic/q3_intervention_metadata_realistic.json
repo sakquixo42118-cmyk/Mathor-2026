@@ -1,0 +1,24 @@
+{
+  "input_csv": "D:\\garage\\mathor real\\out\\c_q1_main_simple.csv",
+  "output_dir": "D:\\garage\\mathor real\\out\\q3_intervention_optimization_realistic",
+  "figure_dir": "D:\\garage\\mathor real\\figure\\q3_intervention_optimization_realistic",
+  "model": "现实优化版：严格最优容忍带 + 成本/负担优先",
+  "score_tolerance": 1.0,
+  "budget_max": 2000.0,
+  "activity_cost": {
+    "1": 3.0,
+    "2": 5.0,
+    "3": 8.0
+  },
+  "tcm_cost": {
+    "1": 30.0,
+    "2": 80.0,
+    "3": 130.0
+  },
+  "intensity_burden_weight": {
+    "1": 1.0,
+    "2": 1.5,
+    "3": 2.0
+  },
+  "n_patients": 278
+}
