@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import numpy as np
 import pandas as pd
+from matplotlib.colors import LinearSegmentedColormap
 
 
 # ============================================================
@@ -48,6 +49,10 @@ def get_chinese_font() -> FontProperties:
 
 ZH_FONT = get_chinese_font()
 plt.rcParams["axes.unicode_minus"] = False
+HEATMAP_CMAP = LinearSegmentedColormap.from_list(
+    "pareto_soft",
+    ["#e7e4f8", "#f1ccde", "#d2798c"]
+)
 
 
 def apply_zh_font(ax, title: Optional[str] = None,
@@ -520,7 +525,7 @@ def main():
         pivot = pivot.reindex(index=["55-58", "59-61", "62-65"], columns=["<40", "40-59", ">=60"])
 
         fig, ax = plt.subplots(figsize=(10, 7), dpi=220)
-        im = ax.imshow(pivot.values, aspect="auto", cmap=["e7e4f8","f1ccde","d2798c"])
+        im = ax.imshow(pivot.values, aspect="auto", cmap=HEATMAP_CMAP)
         apply_zh_font(ax, title=title, xlabel="活动能力分层", ylabel="初始痰湿积分分层")
         ax.set_xticks(range(len(pivot.columns)))
         ax.set_xticklabels(pivot.columns)

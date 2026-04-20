@@ -1,6 +1,6 @@
-﻿问题三辅助验证：完整帕累托前沿 + 三类代表方案
+﻿问题三：完整帕累托前沿 + 三类代表方案
 ============================================
-输入数据文件：D:\garage\mathor real\out\c_q1_main_simple.csv
+输入数据文件：G:\university\MATHOR REAL\Mathor-2026\out\c_q1_main_simple.csv
 痰湿体质患者数量（体质标签=5）：278
 
 一、辅助验证口径
@@ -21,5 +21,5 @@
 - q3_patient_pareto_representative_plans_validation.csv：每位患者三类代表方案的逐月明细
 - q3_patient_pareto_points_validation.csv：每位患者完整帕累托点集
 - q3_feature_rule_summary_validation.csv：分组后的匹配规律汇总（基于均衡方案）
-- q3_sample_1/2/3_pareto_validation.png：样本1/2/3帕累托辅助验证图
+- q3_sample_1/2/3_pareto_validation.png：样本1/2/3帕累托验证图
 - q3_validation_group_avg_cost_heatmap.png / q3_validation_group_avg_final_score_heatmap.png：均衡方案分组热力图
